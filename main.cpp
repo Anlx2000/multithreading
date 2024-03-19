@@ -1,12 +1,17 @@
-//
-// Created by 安凌翔 on 2024/3/19.
-//
 
 #include <iostream>
+#include <vector>
+#include "ProducerConsumer.h"
+
 
 using namespace std;
 
 int main()
 {
-    cout << "hello" << endl;
+
+    ProducerConsumer<int> producerconsumer(200, 5, 5);
+
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+
+
 }
