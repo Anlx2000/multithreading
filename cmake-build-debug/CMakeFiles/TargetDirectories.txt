@@ -1,0 +1,3 @@
+/Users/anlx/code/mutithreading/cmake-build-debug/CMakeFiles/mutithreading.dir
+/Users/anlx/code/mutithreading/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/anlx/code/mutithreading/cmake-build-debug/CMakeFiles/rebuild_cache.dir
