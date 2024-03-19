@@ -14,35 +14,35 @@ public:
     SafeQueue& operator = (const SafeQueue & ot) = delete;
 
     bool empty(){
-        std::unique_lock<std::mutex> lock(mtx);
-        return q.empty();
+        std::unique_lock<std::mutex> lock(m_Mutex);
+        return m_Queue.empty();
     }
 
     int size(){
-        std::unique_lock<std::mutex> lock(mtx);
-        return q.size();
+        std::unique_lock<std::mutex> lock(m_Mutex);
+        return m_Queue.size();
     }
     void push(T& value){
-        std::unique_lock<std::mutex> lock(mtx);
-        q.emplace(value);
+        std::unique_lock<std::mutex> lock(m_Mutex);
+        m_Queue.emplace(value);
     }
 
     void push(T&& value){
-        std::unique_lock<std::mutex> lock(mtx);
-        q.emplace(std::move(value));
+        std::unique_lock<std::mutex> lock(m_Mutex);
+        m_Queue.emplace(std::move(value));
     }
 
     bool pop(T& value){
-        std::unique_lock<std::mutex> lock(mtx);
-        if(q.empty()) return false;
+        std::unique_lock<std::mutex> lock(m_Mutex);
+        if(m_Queue.empty()) return false;
         else{
-            value = std::move(q.front());
-            q.pop();
+            value = std::move(m_Queue.front());
+            m_Queue.pop();
             return true;
         }
     }
 
 private:
-    std::queue<T> q;
-    std::mutex mtx;
+    std::queue<T> m_Queue;
+    std::mutex m_Mutex;
 };

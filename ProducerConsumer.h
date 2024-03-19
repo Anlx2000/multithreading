@@ -10,22 +10,22 @@
 template <typename T>
 class ProducerConsumer{
 public:
-    ProducerConsumer(): maxSize(20), producerThreads(2), consumerThreads(2), runningStatus(true) {
+    ProducerConsumer(): m_MaxSize(20), m_ProducerThreads(2), m_ConsumerThreads(2), m_RunningStatus(true) {
         initialize();
     }
 
-    ProducerConsumer(int queueMaxSize, int producerNum, int consumerNum): maxSize(queueMaxSize), producerThreads(producerNum), consumerThreads(consumerNum), runningStatus(true){
+    ProducerConsumer(int queuem_MaxSize, int producerNum, int consumerNum): m_MaxSize(queuem_MaxSize), m_ProducerThreads(producerNum), m_ConsumerThreads(consumerNum), m_RunningStatus(true){
         initialize();
     }
     ~ProducerConsumer(){
-        runningStatus = false;
-        queueNotEmptyCV.notify_all();
-        queueNotFullCV.notify_all();
+        m_RunningStatus = false;
+        m_QueueNotEmptyCV.notify_all();
+        m_QueueNotFullCV.notify_all();
 
-        for(auto& t:producerThreads){
+        for(auto& t:m_ProducerThreads){
             if(t.joinable()) t.join();
         }
-        for(auto& t:consumerThreads){
+        for(auto& t:m_ConsumerThreads){
             if(t.joinable()) t.join();
         }
 
@@ -33,61 +33,61 @@ public:
     }
 
 private:
-    int maxSize;
-    SafeQueue<T> m_q;
-    std::mutex mtx;
+    int m_MaxSize;
+    SafeQueue<T> m_Queue;
+    std::mutex m_Mutex;
 
-    std::vector<std::thread> producerThreads;
-    std::vector<std::thread> consumerThreads;
+    std::vector<std::thread> m_ProducerThreads;
+    std::vector<std::thread> m_ConsumerThreads;
 
 
-    std::condition_variable queueNotFullCV;
-    std::condition_variable queueNotEmptyCV;
+    std::condition_variable m_QueueNotFullCV;
+    std::condition_variable m_QueueNotEmptyCV;
 
-    std::atomic<bool> runningStatus;
+    std::atomic<bool> m_RunningStatus;
 
     void initialize(){
-        for(size_t i = 0; i < producerThreads.size(); i++){
-            producerThreads[i] = std::thread(&ProducerConsumer::producer, this);
+        for(size_t i = 0; i < m_ProducerThreads.size(); i++){
+            m_ProducerThreads[i] = std::thread(&ProducerConsumer::producer, this);
         }
-        for(size_t i = 0; i < consumerThreads.size(); i++){
-            consumerThreads[i] = std::thread(&ProducerConsumer::consumer, this);
+        for(size_t i = 0; i < m_ConsumerThreads.size(); i++){
+            m_ConsumerThreads[i] = std::thread(&ProducerConsumer::consumer, this);
         }
     }
 
     bool isFull(){
-        if(m_q.size() >= maxSize) return true;
+        if(m_Queue.size() >= m_MaxSize) return true;
         return false;
     }
 
     void producer(){
-        while(runningStatus){
-            std::unique_lock<std::mutex> lock(mtx);
+        while(m_RunningStatus){
+            std::unique_lock<std::mutex> lock(m_Mutex);
 
-            while(isFull() && runningStatus){
-                std::cout << "Queue is full! Waiting for queueNotFullCV\n";
-                queueNotFullCV.wait(lock);
+            while(isFull() && m_RunningStatus){
+                std::cout << "Queue is full! Waiting for m_QueueNotFullCV\n";
+                m_QueueNotFullCV.wait(lock);
             }
             T value = 3;
-            m_q.push(value);
-            queueNotEmptyCV.notify_one();
+            m_Queue.push(value);
+            m_QueueNotEmptyCV.notify_one();
         }
     }
     void consumer()
     {
-        while(runningStatus){
-            std::unique_lock<std::mutex> lock(mtx);
-            while(m_q.empty() && runningStatus){
-                std::cout << "Queue is empty! Waiting for queueNotEmptyCV\n";
-                queueNotEmptyCV.wait(lock);
+        while(m_RunningStatus){
+            std::unique_lock<std::mutex> lock(m_Mutex);
+            while(m_Queue.empty() && m_RunningStatus){
+                std::cout << "Queue is empty! Waiting for m_QueueNotEmptyCV\n";
+                m_QueueNotEmptyCV.wait(lock);
             }
             T value;
-            bool result = m_q.pop(value);
+            bool result = m_Queue.pop(value);
             value++;
             if(result)
                 std::cout << "Value is:" << value << '\n';
             else std::cout << "Can't get value!\n";
-            queueNotFullCV.notify_one();
+            m_QueueNotFullCV.notify_one();
         }
 
     }
