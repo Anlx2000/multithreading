@@ -13,13 +13,11 @@ void task(int a, int b, int& ret)
     return;
 }
 
-
 int main()
 {
 
-//    ProducerConsumer<int> producerconsumer(200, 5, 5);
-//
-//    std::this_thread::sleep_for(std::chrono::seconds(5));
+    ProducerConsumer<int> producerconsumer(200, 5, 5);
+    std::this_thread::sleep_for(std::chrono::seconds(5));
 
     int taskNum = 20;
     TinyThreadPool threadPool;
